@@ -3,13 +3,12 @@ import numpy as np
 import os
 
 # MINIST
-#import tensorflow.examples.tutorials.mnist.input_data as input_data
-#mnist = input_data.read_data_sets (
+# import tensorflow.examples.tutorials.mnist.input_data as input_data
+# mnist = input_data.read_data_sets (
 #    "./MNIST_data/", one_hot=True)
 
-# SAMPLE PATH
 
-class getExample():
+class prepareExample():
 
     def __init__(self):
         self.sampleRootPath = "./SAMPLE"
@@ -17,12 +16,11 @@ class getExample():
         self.sampleRockPath = "./SAMPLE/Rock"
         self.sampleScissorsPath = "./SAMPLE/Scissors"
 
-    
+    def getTargetAndLabel():
     #args:
     #    path: file directory
     #returns:
     #    list of images and labels
-    def getTargetAndLabel():
         paperTarget = []
         rockTarget = []
         scissorsTarget = []
@@ -33,18 +31,60 @@ class getExample():
 
         for file in os.listdir(sampleRockPath):
             rockTarget.append(sampleRockPath + file)
-            labelRock.append(0)
+            labelRock.append(int(0))
         for file in os.listdir(sampleScissorsPath):
             scissorsTarget.append(sampleScissorsPath + file)
-            labelScissors.append(1)
+            labelScissors.append(int(1))
         for file in os.listdir(samplePaperPath):
             paperTarget.append(samplePaperPath + file)
-            labelPaper.append(2)
+            labelPaper.append(int(2))
 
-        print("SAMPLE STORAGE: \n %d Rock\n %d Scissors\n %d Paper\n" %(len(rockTarget),len(scissorsTarget),len(paperTarget)))
+        print("SAMPLE STORAGE: \n %d Rock\n %d Scissors\n %d Paper\n" % (len(rockTarget),len(scissorsTarget),len(paperTarget)))
 
         sampleList = np.hstack((rockTarget,scissorsTarget,paperTarget))
         labelList = np.hstack((labelRock,labelScissors,labelPaper))
+
+        return sampleList, labelList
+
+    def getBatch(image, label, image_W, image_H, batch_size, capacity):
+    #Args:
+    #    image: list type
+    #    label: list type
+    #    image_W: image width
+    #    image_H: image height
+    #    batch_size: batch size
+    #    capacity: the maximum elements in queue
+    #Returns:
+    #    image_batch: 4D tensor [batch_size, width, height, 3], dtype=tf.float32
+    #    label_batch: 1D tensor [batch_size], dtype=tf.int32
+    
+    image = tf.cast(image, tf.string)
+    label = tf.cast(label, tf.int32)
+
+    # make an input queue
+    input_queue = tf.train.slice_input_producer([image, label])
+    
+    label = input_queue[1]
+    image_contents = tf.read_file(input_queue[0])
+    image = tf.image.decode_jpeg(image_contents, channels=3)
+
+    # RESIZE the sample pictures
+    # image = tf.image.resize_image_with_crop_or_pad(image, image_W, image_H)
+
+    image = tf.image.per_image_standardization(image)
+
+    you can also use shuffle_batch 
+    image_batch, label_batch = tf.train.shuffle_batch([image,label],
+                                                      batch_size=BATCH_SIZE,
+                                                      num_threads=64,
+                                                      capacity=CAPACITY,
+                                                      min_after_dequeue=CAPACITY-1)
+
+    label_batch = tf.reshape(label_batch, [batch_size])
+    image_batch = tf.cast(image_batch, tf.float32)
+    
+    return image_batch, label_batch
+
 
 
 sess = tf.InteractiveSession()
@@ -120,8 +160,7 @@ for i in range(5000):
 
 for i in range(5):
     testSet = mnist.test.next_batch(50)
-    print("test %d, accuracy: %g" % (i, accuracy.eval(
-        feed_dict={x: testSet[0], y_: testSet[1], keep_prob: 1.0})))
+    print("test %d, accuracy: %g" % (i, accuracy.eval(feed_dict={x: testSet[0], y_: testSet[1], keep_prob: 1.0})))
 
 write.close
 

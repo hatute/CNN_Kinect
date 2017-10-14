@@ -1,8 +1,51 @@
 import tensorflow as tf
-import tensorflow.examples.tutorials.mnist.input_data as input_data
+import numpy as np
+import os
 
-mnist = input_data.read_data_sets (
-    "./MNIST_data/", one_hot=True)
+# MINIST
+#import tensorflow.examples.tutorials.mnist.input_data as input_data
+#mnist = input_data.read_data_sets (
+#    "./MNIST_data/", one_hot=True)
+
+# SAMPLE PATH
+
+class getExample():
+
+    def __init__(self):
+        self.sampleRootPath = "./SAMPLE"
+        self.samplePaperPath = "./SAMPLE/Raper"
+        self.sampleRockPath = "./SAMPLE/Rock"
+        self.sampleScissorsPath = "./SAMPLE/Scissors"
+
+    
+    #args:
+    #    path: file directory
+    #returns:
+    #    list of images and labels
+    def getTargetAndLabel():
+        paperTarget = []
+        rockTarget = []
+        scissorsTarget = []
+
+        labelPaper = []    #2
+        labelRock = []     #0
+        labelScissors = [] #1
+
+        for file in os.listdir(sampleRockPath):
+            rockTarget.append(sampleRockPath + file)
+            labelRock.append(0)
+        for file in os.listdir(sampleScissorsPath):
+            scissorsTarget.append(sampleScissorsPath + file)
+            labelScissors.append(1)
+        for file in os.listdir(samplePaperPath):
+            paperTarget.append(samplePaperPath + file)
+            labelPaper.append(2)
+
+        print("SAMPLE STORAGE: \n %d Rock\n %d Scissors\n %d Paper\n" %(len(rockTarget),len(scissorsTarget),len(paperTarget)))
+
+        sampleList = np.hstack((rockTarget,scissorsTarget,paperTarget))
+        labelList = np.hstack((labelRock,labelScissors,labelPaper))
+
 
 sess = tf.InteractiveSession()
 

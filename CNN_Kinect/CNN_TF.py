@@ -6,7 +6,7 @@ IMG_W = 128  # resize the image, if the input image is too large, training will 
 IMG_H = 128
 BATCH_SIZE = 16
 CAPACITY = 2000
-MAX_STEP = 600 # with current parameters, it is suggested to use MAX_STEP>10k
+MAX_STEP = 2000 # with current parameters, it is suggested to use MAX_STEP>10k
 learning_rate = 0.0001 # with current parameters, it is suggested to use learning rate<0.0001
 # MINIST
 # import tensorflow.examples.tutorials.mnist.input_data as input_data
@@ -115,17 +115,11 @@ class TFModel(object):
     def Cov(self,images, batch_size, n_classes):
         with tf.variable_scope('conv1') as scope:
             weights = self.init_weight_variable([3,3,3, 16])
-            #weights = tf.get_variable('weights',
-            #                          shape = [3,3,3, 16],
-            #                          dtype = tf.float32,
-            #                          initializer=tf.truncated_normal_initializer(stddev=0.1,dtype=tf.float32))
+            
             biases = self.init_bias_variable([16])
-            #biases = tf.get_variable('biases', 
-            #                         shape=[16],
-            #                         dtype=tf.float32,
-            #                         initializer=tf.constant_initializer(0.1))
+            
             conv = self.conv2d(images , weights)
-            #conv = tf.nn.conv2d(images, weights, strides=[1,1,1,1], padding='SAME')
+            
             pre_activation = tf.nn.bias_add(conv, biases)
             conv1 = tf.nn.relu(pre_activation, name= scope.name)
     
@@ -139,17 +133,11 @@ class TFModel(object):
         #conv2
         with tf.variable_scope('conv2') as scope:
             weights = self.init_weight_variable([3,3,16, 16])
-            #weights = tf.get_variable('weights',
-            #                          shape=[3,3,16,16],
-            #                          dtype=tf.float32,
-            #                          initializer=tf.truncated_normal_initializer(stddev=0.1,dtype=tf.float32))
+            
             biases = self.init_bias_variable([16])
-            #biases = tf.get_variable('biases',
-            #                         shape=[16], 
-            #                         dtype=tf.float32,
-            #                         initializer=tf.constant_initializer(0.1))
+            
             conv = self.conv2d(norm1 , weights)
-            #conv = tf.nn.conv2d(norm1, weights, strides=[1,1,1,1],padding='SAME')
+            
             pre_activation = tf.nn.bias_add(conv, biases)
             conv2 = tf.nn.relu(pre_activation, name='conv2')
     
@@ -245,14 +233,14 @@ class TFModel(object):
          #   A scalar int32 tensor with the number of examples (out of batch_size)
          #   that were predicted correctly.
       
-      with tf.variable_scope('accuracy') as scope:
+        with tf.variable_scope('accuracy') as scope:
           correct = tf.nn.in_top_k(logits, labels, 1)
           correct = tf.cast(correct, tf.float16)
           accuracy = tf.reduce_mean(correct)
           tf.summary.scalar(scope.name+'/accuracy', accuracy)
-      return accuracy
+        return accuracy
 
-class TFRun():
+class TFRun(object):
 
     def run_training(self):
     
@@ -289,7 +277,7 @@ class TFRun():
                         break
                 _, tra_loss, tra_acc = sess.run([train_op, train_loss, train__acc])
                
-                if step % 50 == 0:
+                if step % 100 == 0:
                     print('Step %d, train loss = %.2f, train accuracy = %.2f%%' %(step, tra_loss, tra_acc*100.0))
                     summary_str = sess.run(summary_op)
                     train_writer.add_summary(summary_str, step)

@@ -304,7 +304,7 @@ class BodyGameRuntime(object):
                 self._screen.blit(subSurface_handPart, (0,0))
                 iter = iter + 1
                 if iter % 30 == 0:
-                    pygame.image.save(subSurface_handPart, "cap-" + str(iter) + ".png")
+                    pygame.image.save(subSurface_handPart, "SAMPLE\cap-" + str(iter/30) + ".png")
 
             pygame.display.update()
 

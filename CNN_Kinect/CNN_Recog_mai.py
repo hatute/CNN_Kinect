@@ -17,21 +17,6 @@ else:
     import thread
 
 
-class TF(object):
-    def __init__(self):
-        self.N_CLASSES = 3
-        # RESIZE PIC
-        # self.IMG_W = 208
-        # self.IMG_H = 208
-        self.BATCH_SIZE = 16
-        # self.LOGDIR = "./log/strain/"
-
-    @staticmethod
-    def evaluate(self, subSurfaceimage):
-        with tf.Graph().as_default():
-            image = tf.cast()
-
-
 class BodyFrameRuntime(object):
     def __init__(self):
         pygame.init()
@@ -71,7 +56,7 @@ class BodyFrameRuntime(object):
 
         return self._frame_surface.subsurface(seclectedRect)
 
-    def run(self):
+    def runEvaluate(self):
         # -------- Main Program Loop -----------
         iter = 0
 
@@ -116,7 +101,7 @@ class BodyFrameRuntime(object):
             # surface_to_draw = None
             if subSurface_handPart is not None:
                 self._screen.blit(subSurface_handPart, (0, 0))
-            subSurfaceImage = subSurface_handPart.get_buffer()
+
             pygame.display.update()
 
             # update the screen with what we've drawn.
@@ -127,3 +112,30 @@ class BodyFrameRuntime(object):
         # Close our Kinect sensor, close the window and quit.
         self._kinect.close()
         pygame.quit()
+
+
+
+
+
+if __name__ == "__main__":
+    Running = BodyFrameRuntime()
+    with tf.Session as sessMain:
+        image = tf.zeros([1, 128, 128, 3])
+        model = CNN_Kinect.CNN_TF.TFModel()
+        logit = model.Cov(image, 1, 3)
+        logit = tf.nn.softmax(logit)
+        x = tf.placeholder(tf.float32, shape=[128, 128, 3])
+        LOGDIR = "./log/train/"
+        saver = tf.train.Saver()
+        print("Reading checkpoints...")
+        ckpt = tf.train.get_checkpoint_state(LOGDIR)
+        if ckpt and ckpt.model_checkpoint_path:
+            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+            saver.restore(sessMain, ckpt.model_checkpoint_path)
+            print('Loading success, Latest global_step is %s' % global_step)
+        else:
+            print('No checkpoint file found')
+
+
+        # TODO: get image resource
+    Running.runEvaluate()

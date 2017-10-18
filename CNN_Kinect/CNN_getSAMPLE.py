@@ -23,6 +23,10 @@ SKELETON_COLORS = [pygame.color.THECOLORS["red"],
                    pygame.color.THECOLORS["violet"]]
 
 
+halfSize = 96
+fullSize = 192
+
+
 class BodyFrameRuntime(object):
     def __init__(self):
         pygame.init()
@@ -165,10 +169,10 @@ class BodyFrameRuntime(object):
     def extract_hand(self, jointPoints):
         rightHand_joint = jointPoints[PyKinectV2.JointType_HandRight]
         rightHand_centerPoint = (int(rightHand_joint.x), int(rightHand_joint.y))
-        rect_topLeft = (rightHand_centerPoint[0] - 64, rightHand_centerPoint[1] - 64)
-        rect_bottomRight = (rightHand_centerPoint[0] + 64, rightHand_centerPoint[1] + 64)
+        rect_topLeft = (rightHand_centerPoint[0] - halfSize, rightHand_centerPoint[1] - halfSize)
+        rect_bottomRight = (rightHand_centerPoint[0] + halfSize, rightHand_centerPoint[1] + halfSize)
 
-        seclectedRect = pygame.Rect(rightHand_centerPoint[0] - 64, rightHand_centerPoint[1] - 64, 128, 128)
+        seclectedRect = pygame.Rect(rightHand_centerPoint[0] - halfSize, rightHand_centerPoint[1] - halfSize, fullSize, fullSize)
 
         return self._frame_surface.subsurface(seclectedRect)
 
@@ -231,8 +235,8 @@ class BodyFrameRuntime(object):
             if subSurface_handPart is not None:
                 self._screen.blit(subSurface_handPart, (0, 0))
                 iter = iter + 1
-                if iter % 30 == 0:
-                    pygame.image.save(subSurface_handPart, "SAMPLE\cap-" + str(iter / 30) + ".png")
+                if iter % 5 == 0:
+                    pygame.image.save(subSurface_handPart, "SAMPLE\cap-" + str(iter / 5) + ".png")
 
             pygame.display.update()
 

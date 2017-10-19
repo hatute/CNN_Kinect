@@ -8,28 +8,13 @@ import ctypes
 import _ctypes
 import pygame
 import sys
-import CNN_Kinect.CNN_TF
+import CNN_Kinect.CNN_TF_recog
 from PIL import Image
 
 if sys.hexversion >= 0x03000000:
     import _thread as thread
 else:
     import thread
-
-
-class TF(object):
-    def __init__(self):
-        self.N_CLASSES = 3
-        # RESIZE PIC
-        # self.IMG_W = 208
-        # self.IMG_H = 208
-        self.BATCH_SIZE = 16
-        # self.LOGDIR = "./log/strain/"
-
-    @staticmethod
-    def evaluate(self, subSurfaceimage):
-        with tf.Graph().as_default():
-            image = tf.cast()
 
 
 class BodyFrameRuntime(object):
@@ -71,10 +56,26 @@ class BodyFrameRuntime(object):
 
         return self._frame_surface.subsurface(seclectedRect)
 
-    def run(self):
+    def runEvaluate(self):
         # -------- Main Program Loop -----------
         iter = 0
-
+        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        sessMain = tf.Session()
+        image = tf.zeros([1, 128, 128, 3])
+        model = CNN_Kinect.CNN_TF_recog.TFModel()
+        logit = model.Cov(image, 1, 3)
+        x = tf.placeholder(tf.float32, shape=[128, 128, 3])
+        LOGDIR = "./logs/train/"
+        saver = tf.train.Saver()
+        print("Reading checkpoints...")
+        ckpt = tf.train.get_checkpoint_state(LOGDIR)
+        if ckpt and ckpt.model_checkpoint_path:
+            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+            saver.restore(sessMain, ckpt.model_checkpoint_path)
+            print('Loading success, Latest global_step is %s' % global_step)
+        else:
+            print('No checkpoint file found')
+        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         while not self._done:
             # --- Main event loop
             for event in pygame.event.get():  # User did something
@@ -116,7 +117,19 @@ class BodyFrameRuntime(object):
             # surface_to_draw = None
             if subSurface_handPart is not None:
                 self._screen.blit(subSurface_handPart, (0, 0))
-            subSurfaceImage = subSurface_handPart.get_buffer()
+
+                #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                buf = subSurface_handPart.get_view('3')
+                image_array = np.array(buf)
+                image_array = tf.cast(image_array, tf.float32)
+                image_array = tf.image.per_image_standardization(image_array)
+                image_array = tf.reshape(image_array, [1, 128, 128, 3])
+                logit1 = model.Cov(image_array, 1, 3)
+                logit1 = tf.nn.softmax(logit)
+                x = tf.placeholder(tf.float32, shape=[128, 128, 3])
+                prediction = sessMain.run(logit1, feed_dict={x: image_array})
+                #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
             pygame.display.update()
 
             # update the screen with what we've drawn.
@@ -127,3 +140,8 @@ class BodyFrameRuntime(object):
         # Close our Kinect sensor, close the window and quit.
         self._kinect.close()
         pygame.quit()
+
+
+if __name__ == "__main__":
+    Running = BodyFrameRuntime()
+    Running.runEvaluate()

@@ -8,7 +8,7 @@ import ctypes
 import _ctypes
 import pygame
 import sys
-import CNN_Kinect.CNN_TF
+import CNN_TF
 from PIL import Image
 
 if sys.hexversion >= 0x03000000:
@@ -60,6 +60,25 @@ class BodyFrameRuntime(object):
         # -------- Main Program Loop -----------
         iter = 0
 
+        sessMain = tf.Session()
+        image = tf.zeros([1, 128, 128, 3])
+        model = CNN_Kinect.CNN_TF.TFModel()
+        logit = model.Cov(image, 1, 3)
+        logit = tf.nn.softmax(logit)
+        x = tf.placeholder(tf.float32, shape=[128, 128, 3])
+        LOGDIR = "./log/train/"
+        saver = tf.train.Saver()
+        print("Reading checkpoints...")
+        ckpt = tf.train.get_checkpoint_state(LOGDIR)
+        if ckpt and ckpt.model_checkpoint_path:
+            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+            saver.restore(sessMain, ckpt.model_checkpoint_path)
+            print('Loading success, Latest global_step is %s' % global_step)
+        else:
+            print('No checkpoint file found')
+
+
+
         while not self._done:
             # --- Main event loop
             for event in pygame.event.get():  # User did something
@@ -101,6 +120,8 @@ class BodyFrameRuntime(object):
             # surface_to_draw = None
             if subSurface_handPart is not None:
                 self._screen.blit(subSurface_handPart, (0, 0))
+                image_array = np.array(subSurface_handPart.get_buffer())
+                prediction = sessMain.run(logit, feed_dict={x: image_array})
 
             pygame.display.update()
 
@@ -119,22 +140,7 @@ class BodyFrameRuntime(object):
 
 if __name__ == "__main__":
     Running = BodyFrameRuntime()
-    with tf.Session as sessMain:
-        image = tf.zeros([1, 128, 128, 3])
-        model = CNN_Kinect.CNN_TF.TFModel()
-        logit = model.Cov(image, 1, 3)
-        logit = tf.nn.softmax(logit)
-        x = tf.placeholder(tf.float32, shape=[128, 128, 3])
-        LOGDIR = "./log/train/"
-        saver = tf.train.Saver()
-        print("Reading checkpoints...")
-        ckpt = tf.train.get_checkpoint_state(LOGDIR)
-        if ckpt and ckpt.model_checkpoint_path:
-            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
-            saver.restore(sessMain, ckpt.model_checkpoint_path)
-            print('Loading success, Latest global_step is %s' % global_step)
-        else:
-            print('No checkpoint file found')
+
 
 
         # TODO: get image resource

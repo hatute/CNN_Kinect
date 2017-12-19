@@ -105,7 +105,9 @@ class Prepare(object):
 
 
 class TFModel(object):
-    def Cov(self, images, batch_size, n_classes):
+    def Cov(self, image_input, batch_size, n_classes):
+        images = tf.placeholder(tf.float32, shape=image_input.get_shape(), name="input")
+        images = image_input
         with tf.variable_scope('conv1') as scope:
             weights = tf.get_variable('weights',
                                       shape=[3, 3, 3, 16],
@@ -183,7 +185,7 @@ class TFModel(object):
                                      shape=[n_classes],
                                      dtype=tf.float32,
                                      initializer=tf.constant_initializer(0.1))
-            softmax_linear = tf.add(tf.matmul(local4, weights), biases, name='softmax_linear')
+            softmax_linear = tf.add(tf.matmul(local4, weights), biases, name='softmax_output')
 
         return softmax_linear
 
@@ -275,17 +277,18 @@ class TFRun(object):
                     print('Step %d, train loss = %.2f, train accuracy = %.2f%%' % (step, tra_loss, tra_acc * 100.0))
 
                     # ckpt save way
-                    #     summary_str = sess.run(summary_op)f
-                    #     train_writer.add_summary(summary_str, step)
-
                     # if step % 2000 == 0 or (step + 1) == MAX_STEP:
-                    #     checkpoint_path = os.path.join(logs_train_dir, 'model.ckpt')
+                    #     checkpoint_path = os.path.join(logs_dir, 'model.ckpt')
                     # saver.save(sess, logs_dir, global_step=step)
 
+                    sess.run(tf.global_variables_initializer())
                     constant_graph = tf.get_default_graph().as_graph_def()
-                    current_time = str(time.strftime('%Y%m%d', time.localtime(time.time())))
-                    file_name = current_time + "_" + "step" + str(step) + ".pb"
-                    with tf.gfile.FastGFile(logs_dir + file_name, mode='wb') as f:
+                    current_date = str(time.strftime('%Y%m%d', time.localtime(time.time())))
+                    file_name = current_date + "_" + "step" + str(step) + ".pb"
+                    file = str(logs_dir + file_name)
+                    if os.path.exists(file):
+                        os.remove(file)
+                    with tf.gfile.FastGFile(file, mode='wb') as f:
                         f.write(constant_graph.SerializeToString())
 
         except tf.errors.OutOfRangeError:

@@ -1,10 +1,10 @@
-# Introduction
+# Introduction:
 
 Gesture recognition using convolutional neural networks, examples include gesture numbers 0-5
 
 Training samples can be shared by contacting us
 
-# Requirements: 
+# Requirements:
 Tensorflow, Kinect2.0 for xbox one (no longer available)
 
 # Group: 

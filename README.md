@@ -3,6 +3,8 @@ Gesture recognition using convolutional neural networks, examples include gestur
 
 Training samples can be shared by contacting us.
 
+[Vedio Presentation](https://swellmai.github.io/2019/03/05/HG_presentation/)
+
 # Requirements
 Tensorflow, Kinect2.0 for xbox one (no longer available)
 
